@@ -7,7 +7,7 @@ import { once } from 'events';
 const startServer = async () => {
     const app = express();
     app.use(express.urlencoded({ extended: true }));
-    app.use(json()); // parse the request into json
+    //app.use(json()); // parse the request into json
     connectMongoDB();
     console.log(process.env);
     console.log(router);

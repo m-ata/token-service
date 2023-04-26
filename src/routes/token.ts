@@ -9,9 +9,10 @@ router.post("/token", async (req: Request, res: Response) => {
   const db = MONGO_DB.db("fishreg");
   let response = await db
     .collection(`users`)
-    .find({ userName: new RegExp("^" + body.userName + "$", "i") })
+    .find({ userName: body.username })
     .toArray();
   console.log(response);
+  res.status(200).send(response);
 });
 
 export default router;

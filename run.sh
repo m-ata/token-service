@@ -35,10 +35,10 @@ export MONGODB_USER="$(getServiceCredential mongodb_service_user)"
 export MONGODB_PASSWORD="$(getServiceCredential mongodb_service_password)"
 export MONGODB_DATABASE=fishreg
 export MONGODB_HOST="127.0.0.1"
-export MONGODB_PORT="43003"
+export MONGODB_PORT="51003"
 if [ "${FISHREG_ENV}" == "prod" ]
 then
-  export MONGODB_PORT="44003"
+  export MONGODB_PORT="52003"
 fi
 export MONGODB_TLS="true"
 export MONGODB_TLS_KEY_FILE="${WORK_DIR}/certs/${FISHREG_PROJECT}-mongodb-client.tls.key"
@@ -48,7 +48,7 @@ export MONGODB_TLS_CA_FILE="${WORK_DIR}/certs/${FISHREG_PROJECT}-mongodb-client.
 
 # generic service parameters
 export POD_IP="127.0.0.1"
-export LISTEN_PORT="${LISTEN_PORT:-43003}"
+export LISTEN_PORT="${LISTEN_PORT:-53003}"
 export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=4000}"
 
 export TOKEN_SERVICE_SSL_CERT="${WORK_DIR}/certs/${FISHREG_PROJECT}-token-service.tls.crt"

@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { UserOption } from "../interfaces/userOption.interface";
+import { UserOption } from "../interfaces/user.interface";
 import { MONGO_DB } from "../db";
 
 export const authenticateUser = async (options: UserOption) => {

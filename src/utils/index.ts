@@ -3,10 +3,8 @@ import fs from "fs";
 import config from "./config";
 import { v4 as uuidv4 } from "uuid";
 import jwt from "jsonwebtoken";
-import { cleanupTokens, updateToken } from "../db";
+import { cleanupTokens } from "../db";
 import { insertToken } from "../db";
-import { authenticateCode, authenticateUser } from "../middlewares/auth.middleware";
-import { getToken } from "../middlewares/token.middleware";
 
 export const ssha = (cleartext: string, salt?: any) => {
   let sum = crypto.createHash("sha1");
@@ -86,7 +84,7 @@ export const generateCodeToken = async (payload: any) => {
     code: payload.code ? "redacted" : null,
   });
   let sslKeyFile = fs.readFileSync(config.TOKEN_SERVICE_SSL_KEY);
-  let sslKey = new (Buffer.from(sslKeyFile as any, "utf-8") as any)();
+  let sslKey = new Buffer(sslKeyFile as any, "utf-8") as any;
 
   let tokenExpiryDate = config.CODE_TOKEN_EXPIRY;
   let refreshTokenExpiryDate = config.CODE_REFRESHTOKEN_EXPIRY;

@@ -5,16 +5,16 @@ export interface UserOption {
 }
 export interface IUser {
     organisationId: number;
-    userName: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    phoneNumber: string;
-    configuration: Object;
+    userName?: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phoneNumber?: string;
+    configuration?: Object;
     initialUser?: boolean;
     userPassword: string;
-    userId: string;
+    userId?: string;
     emailVerified?: boolean;
     emailVerificationCode?: string;
-    camps: Array<any>; // will be strongly typed later
+    camps?: Array<any>; // will be strongly typed later
 }

@@ -3,7 +3,7 @@ import fs from "fs";
 import config from "./config";
 import { v4 as uuidv4 } from "uuid";
 import jwt from "jsonwebtoken";
-import { cleanupTokens } from "../db";
+import { cleanupTokens, deleteToken } from "../db";
 import { insertToken } from "../db";
 
 export const ssha = (cleartext: string, salt?: any) => {
@@ -217,4 +217,16 @@ export const generateToken = async (payload: any) => {
     expires_in: config.TOKEN_EXPIRY,
     refresh_expires_in: config.REFRESHTOKEN_EXPIRY,
   };
+};
+
+/*
+  logout token
+*/
+export const logout = async (token: any) => {
+  console.debug(
+    `BACKEND.logout() called for userName ${token.userName} jti ${token.jti}`,
+  );
+
+  await deleteToken(token.jti);
+  return true;
 };

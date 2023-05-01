@@ -126,3 +126,12 @@ export const getCode = async (code: string) => {
   if (res?.length) return res[0];
   return null;
 };
+
+/*
+  tokens
+*/
+export const getTokenByJti = async function (jti: string) {
+  console.debug(`MongoDB.getToken()`);
+  let res = await fishRegDb.collection(`token-service`).find({ jti: jti }).toArray();
+  if (res?.length) return res[0];
+};

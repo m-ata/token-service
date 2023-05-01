@@ -1,6 +1,7 @@
 import express, { Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import { getToken, refreshToken } from "../middlewares/token.middleware";
+import { getToken, refreshToken, verifyToken } from "../middlewares/token.middleware";
+import { logout } from "../utils";
 
 const router = express.Router();
 
@@ -34,6 +35,19 @@ router.post("/token", async (req: Request, res: Response) => {
       }),
     );
     console.log('error ==> ', error);
+    if (error.status) res.status(error.status).send(error.message);
+    else res.status(500).send(`internal error`);
+  }
+});
+
+router.post("/logout", async (req: Request, res: Response) => {
+  try {
+    console.debug(`POST /logout called`, req.headers);
+    let token = await verifyToken(req);
+    await logout(token);
+    res.status(200).send("OK");
+  } catch (error) {
+    console.error(`Error in  POST /logout`, error);
     if (error.status) res.status(error.status).send(error.message);
     else res.status(500).send(`internal error`);
   }

@@ -1,5 +1,5 @@
 import { IUser } from "../interfaces/user.interface";
-import config from "../utils/config";
+import config from "../configs";
 import { MongoClient } from "mongodb";
 
 const URI = `mongodb://${config.MONGODB_USER}:${config.MONGODB_PASSWORD}@${

@@ -1,7 +1,8 @@
 import express, { Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import { getToken, refreshToken, verifyToken } from "../middlewares/token.middleware";
-import { logout } from "../utils";
+import { verifyToken } from "../middlewares/token.middleware";
+import { logout } from "../controllers/token.controller";
+import { getToken, refreshToken } from "../controllers/token.controller";
 
 const router = express.Router();
 
@@ -9,7 +10,6 @@ router.post("/token", async (req: Request, res: Response) => {
   try {
     const { body } = req;
     console.debug(`POST /token called`);
-    console.debug(`body ${req} ${JSON.parse(JSON.stringify(body))}`);
     let response =
       body.grant_type === "refresh_token"
         ? await refreshToken({

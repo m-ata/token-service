@@ -64,6 +64,6 @@ sleep 1
 
 # node src/server.ts $@
 
-ts-node src/server.ts $@ 
+ts-node ../src/server.ts $@ 
 
 tmux kill-session -t "fishreg-${FISHREG_ENV}-${FISHREG_PROJECT}-mongodb"

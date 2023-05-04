@@ -1,4 +1,6 @@
 import crypto from "crypto";
+import { IUser } from "../interfaces/user.interface";
+import { ICodeTokenPayload } from "../interfaces/code.interface";
 
 export const ssha = (cleartext: string, salt?: any) => {
   let sum = crypto.createHash("sha1");
@@ -38,7 +40,7 @@ const checkSsha = (cleartext: string, hash: string) => {
   return hash === newSsha;
 };
 
-export const getCodeTokenPayload = async (userData: any) => {
+export const getCodeTokenPayload = async (userData: ICodeTokenPayload) => {
   console.debug(`BACKEND.getCodeTokenPayload() called with`, {
     ...userData,
     code: userData.code ? "readacted" : null,
@@ -54,7 +56,7 @@ export const getCodeTokenPayload = async (userData: any) => {
   return payload;
 };
 
-export const getTokenPayload = async (userData: any) => {
+export const getTokenPayload = async (userData: IUser) => {
   console.debug(`BACKEND.getTokenPayload() called with`, {
     ...userData,
     password: userData.password ? "readacted" : null,

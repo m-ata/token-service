@@ -1,10 +1,10 @@
 export interface UserOption {
     userName: string;
-    password: string;
+    userPassword: string;
     refreshToken?: boolean;
 }
 export interface IUser {
-    organisationId: number;
+    organisationId?: number;
     userName?: string;
     firstName?: string;
     lastName?: string;
@@ -12,9 +12,13 @@ export interface IUser {
     phoneNumber?: string;
     configuration?: Object;
     initialUser?: boolean;
-    userPassword: string;
+    userPassword?: string;
     userId?: string;
     emailVerified?: boolean;
     emailVerificationCode?: string;
-    camps?: Array<any>; // will be strongly typed later
+    camps?: Array<string>;
+    source?: string;
+    password?: string;
+    scope?: string;
+    name?: string;
 }

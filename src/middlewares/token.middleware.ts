@@ -3,6 +3,7 @@ import fs from "fs";
 import jwt from "jsonwebtoken";
 import { Request } from "express";
 import { getTokenByJti } from "../db";
+import { IToken } from "../interfaces/token.interface";
 
 export const verifyToken = async (http_request: Request) => {
   console.debug(`UTIL.verifyToken verifying token`);
@@ -14,7 +15,7 @@ export const verifyToken = async (http_request: Request) => {
       error: new Error(`no token passed`),
     };
   }
-  let token: any;
+  let token: IToken;
   // check if token is valid
   try {
     let authorization_header = http_request.headers.authorization.substring(
@@ -31,7 +32,7 @@ export const verifyToken = async (http_request: Request) => {
         algorithms: config.JWTCONFIG.algorithm,
         //issuer: CONFIG.JWTCONFIG.issuer,
       } as any,
-    );
+    ) as any;
   } catch (error) {
     console.error(`error in UTIL.verifyToken `, error);
     throw {

@@ -1,9 +1,10 @@
 import { checkPassword, ssha } from "../utils";
 import { getCode, getUserByField, updateUser } from "../db";
 import { UserOption } from "../interfaces/user.interface";
+import { ICode } from "../interfaces/code.interface";
 
 export const authenticateUser = async (options: UserOption) => {
-  const { userName, password, refreshToken = false } = options;
+  const { userName, userPassword, refreshToken = false } = options;
   let response: any;
   if (userName && userName.match(/^admin#/)) {
     response = await getUserByField("userName", "admin");
@@ -49,7 +50,7 @@ export const authenticateUser = async (options: UserOption) => {
     console.log(
       `User had no previous password set, setting the one he specified`
     );
-    let sshapassword = ssha(password);
+    let sshapassword = ssha(userPassword);
     await updateUser({
       userId: response.userId,
       organisationId: response.organisationId,
@@ -58,13 +59,13 @@ export const authenticateUser = async (options: UserOption) => {
     return response;
   }
   console.log(response);
-  if (refreshToken || checkPassword(password, response.userPassword)) {
+  if (refreshToken || checkPassword(userPassword, response.userPassword)) {
     return response;
   }
   throw `invalid password`;
 };
 
-export const authenticateCode = async (options: any) => {
+export const authenticateCode = async (options: ICode) => {
   console.debug(`BACKEND.authenticateCode() called with`, {
     ...options,
     code: options.code ? "readacted" : null,

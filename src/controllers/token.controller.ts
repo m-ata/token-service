@@ -9,20 +9,19 @@ import { cleanupTokens, deleteToken, getTokenByJti, insertToken, updateToken } f
 import fs from "fs";
 import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
+import { IToken, ITokenPayload } from "../interfaces/token.interface";
 
 /*
   getToken
   called by /token router on "login"
   calls authenticateUser and getTokenPayload, if they dont throw return generateToken promise.
 */
-export const getToken = async (options: any) => {
+export const getToken = async (options: ITokenPayload) => {
   console.debug(`BACKEND.getToken() called with`, {
     ...options,
     password: options.password ? "redacted" : null,
   });
   const { client_id } = options;
-  console.log("client id ", config.TOKEN_SERVICE_CLIENT_ID);
-  console.log("options client id ", client_id);
   if (client_id !== config.TOKEN_SERVICE_CLIENT_ID) {
     throw `token-service not configured for requested client_id`;
   }
@@ -30,12 +29,11 @@ export const getToken = async (options: any) => {
   try {
     userdata = options.code
       ? await authenticateCode({
-          ...options,
+          code: options.code,
         })
       : await authenticateUser({
-          ...options,
           userName: options.username,
-          userPassword: options.userPassword,
+          userPassword: options.password,
         });
   } catch (error) {
     console.error(
@@ -59,7 +57,7 @@ export const getToken = async (options: any) => {
   called by /token router on refresh token
   verify token, throws error if it doesn't exist in DB, otherwise return new token
 */
-export const refreshToken = async (options: any) => {
+export const refreshToken = async (options: ITokenPayload) => {
   console.debug(`BACKEND.refreshToken() called with`, {
     ...options,
   });
@@ -77,7 +75,8 @@ export const refreshToken = async (options: any) => {
         algorithms: config.JWTCONFIG.algorithm as any,
         //issuer: CONFIG.JWTCONFIG.issuer,
       }
-    );
+    ) as any;
+    console.log('token ---> ', token);
   } catch (error) {
     console.error(
       `caught error verifying token in BACKEND.refreshToken()`,

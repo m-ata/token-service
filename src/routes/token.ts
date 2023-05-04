@@ -10,6 +10,7 @@ router.post("/token", async (req: Request, res: Response) => {
   try {
     const { body } = req;
     console.debug(`POST /token called`);
+    console.log('body --> ', body);
     let response =
       body.grant_type === "refresh_token"
         ? await refreshToken({

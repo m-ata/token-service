@@ -7,9 +7,11 @@ import { getCodeTokenPayload } from "../utils";
 import { getTokenPayload } from "../utils";
 import { cleanupTokens, deleteToken, getTokenByJti, insertToken, updateToken } from "../db";
 import fs from "fs";
-import jwt from "jsonwebtoken";
+import jwt, { SignOptions } from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
-import { IToken, ITokenPayload } from "../interfaces/token.interface";
+import { IJwtConfig, ITokenPayload, ITokenResponse } from "../interfaces/token.interface";
+import { ICodeTokenPayload } from "../interfaces/code.interface";
+import { IUser } from "../interfaces/user.interface";
 
 /*
   getToken
@@ -49,7 +51,7 @@ export const getToken = async (options: ITokenPayload) => {
   let payload = options.code
     ? await getCodeTokenPayload(userdata)
     : await getTokenPayload(userdata);
-  return options.code ? generateCodeToken(payload) : generateToken(payload);
+  return options.code ? generateCodeToken(payload as ICodeTokenPayload) : generateToken(payload);
 };
 
 /*
@@ -75,8 +77,7 @@ export const refreshToken = async (options: ITokenPayload) => {
         algorithms: config.JWTCONFIG.algorithm as any,
         //issuer: CONFIG.JWTCONFIG.issuer,
       }
-    ) as any;
-    console.log('token ---> ', token);
+    ) as IJwtConfig;
   } catch (error) {
     console.error(
       `caught error verifying token in BACKEND.refreshToken()`,
@@ -117,10 +118,10 @@ export const refreshToken = async (options: ITokenPayload) => {
     : await getTokenPayload(userdata);
   // delete the used up refresh token
   await updateToken(token.jti);
-  return token.code ? generateCodeToken(payload) : generateToken(payload);
+  return token.code ? generateCodeToken(payload as ICodeTokenPayload) : generateToken(payload);
 };
 
-export const generateCodeToken = async (payload: any) => {
+export const generateCodeToken = async (payload: ICodeTokenPayload) => {
   console.debug(`BACKEND.generateCodeToken() called with`, {
     ...payload,
     code: payload.code ? "redacted" : null,
@@ -146,7 +147,7 @@ export const generateCodeToken = async (payload: any) => {
       jwtid: jwtid,
       expiresIn: +tokenExpiryDate,
       subject: payload.code,
-    } as any
+    } as SignOptions
   );
 
   let refresh_token = jwt.sign(
@@ -164,7 +165,7 @@ export const generateCodeToken = async (payload: any) => {
       jwtid: jwtid,
       expiresIn: +refreshTokenExpiryDate,
       subject: payload.code,
-    } as any
+    } as SignOptions
   );
 
   console.log("generated tokens created: ", {
@@ -193,7 +194,7 @@ export const generateCodeToken = async (payload: any) => {
   called by getToken and refreshToken
   requires passed "payload"
 */
-export const generateToken = async (payload: any) => {
+export const generateToken = async (payload: IUser) => {
   console.debug(`BACKEND.generateToken() called with`, {
     ...payload,
     userPassword: payload.userPassword ? "redacted" : null,
@@ -237,7 +238,7 @@ export const generateToken = async (payload: any) => {
       jwtid: jwtid,
       expiresIn: +refreshTokenExpiryDate,
       subject: payload.userName,
-    } as any
+    } as SignOptions
   );
 
   console.log("generated tokens created: ", {

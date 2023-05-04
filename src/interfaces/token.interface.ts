@@ -8,15 +8,6 @@ export interface ITokenPayload {
     refresh_token?: string;
 }
 
-export interface ICodeTokenPayload {
-    organisationId?: number;
-    campId: string;
-    stayId: string;
-    code: string;
-    codeType?: string;
-    scope?: string
-}
-
 export interface IToken {
     typ: string;
     nbf: number;
@@ -31,4 +22,18 @@ export interface IToken {
     iss: string;
     sub: string;
     jti: string;
+}
+
+export interface ITokenResponse {
+    access_token: string;
+    refresh_token: string;
+    expires_in: string | number;
+    refresh_expires_in: string | number;
+}
+
+export interface IJwtConfig {
+    algorithm: string;
+    audience?: string;
+    issuer?: string;
+    noTimestamp?: false;
 }

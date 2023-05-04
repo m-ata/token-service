@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import { IUser } from "../interfaces/user.interface";
-import { ICodeTokenPayload } from "../interfaces/token.interface";
+import { ICodeTokenPayload } from "../interfaces/code.interface";
 
 export const ssha = (cleartext: string, salt?: any) => {
   let sum = crypto.createHash("sha1");

@@ -3,15 +3,18 @@ import jwt from "jsonwebtoken";
 import { verifyToken } from "../middlewares/token.middleware";
 import { logout } from "../controllers/token.controller";
 import { getToken, refreshToken } from "../controllers/token.controller";
+import { ITokenResponse, ITokenPayload, IToken } from "../interfaces/token.interface";
 
 const router = express.Router();
 
+/*
+ token and refresh token route handler
+*/
 router.post("/token", async (req: Request, res: Response) => {
   try {
-    const { body } = req;
+    const body: ITokenPayload = req.body;
     console.debug(`POST /token called`);
-    console.log('body --> ', body);
-    let response =
+    let response: ITokenResponse =
       body.grant_type === "refresh_token"
         ? await refreshToken({
             ...body,
@@ -40,11 +43,13 @@ router.post("/token", async (req: Request, res: Response) => {
     else res.status(500).send(`internal error`);
   }
 });
-
+/*
+ logout route handler
+*/
 router.post("/logout", async (req: Request, res: Response) => {
   try {
     console.debug(`POST /logout called`, req.headers);
-    let token = await verifyToken(req);
+    let token: IToken = await verifyToken(req);
     await logout(token);
     res.status(200).send("OK");
   } catch (error) {

@@ -11,10 +11,10 @@ export interface ITokenPayload {
 export interface IToken {
   typ: string
   nbf: number
-  scope: string
-  code: string
-  organisationId: number
-  stayId: string
+  scope?: string
+  code?: string
+  organisationId?: number
+  stayId?: string
   campId: string
   iat: string
   exp: string
@@ -37,4 +37,8 @@ export interface IJwtConfig {
   audience?: string
   issuer?: string
   noTimestamp?: false
+}
+export interface IDeleteToken {
+  acknowledged: boolean
+  deleteCount?: number
 }

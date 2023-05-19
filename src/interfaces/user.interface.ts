@@ -4,7 +4,7 @@ export interface UserOption {
   refreshToken?: boolean
 }
 export interface IUser {
-  organisationId: number
+  organisationId?: number
   userName?: string
   firstName?: string
   lastName?: string

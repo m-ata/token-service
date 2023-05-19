@@ -1,6 +1,6 @@
 import crypto from 'crypto'
 import { type IUser } from '../interfaces/user.interface'
-import { type ICodeTokenPayload } from '../interfaces/code.interface'
+import { type ICodeValue } from '../interfaces/code.interface'
 
 export const ssha = (cleartext: string, salt?: any): string => {
   const sum = crypto.createHash('sha1')
@@ -39,7 +39,7 @@ const checkSsha = (cleartext: string, hash: string): boolean => {
   return hash === newSsha
 }
 
-export const getCodeTokenPayload = (userData: ICodeTokenPayload): ICodeTokenPayload => {
+export const getCodeTokenPayload = (userData: ICodeValue): ICodeValue => {
   console.debug('BACKEND.getCodeTokenPayload() called with', {
     ...userData,
     code: userData.code ? 'readacted' : null

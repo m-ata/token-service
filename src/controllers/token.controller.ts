@@ -9,7 +9,7 @@ import fs from 'fs'
 import jwt from 'jsonwebtoken'
 import { v4 as uuidv4 } from 'uuid'
 import { type ITokenPayload, type IToken, type ITokenResponse } from '../interfaces/token.interface'
-import { type ICodeTokenPayload } from '../interfaces/code.interface'
+import { type ICodeValue } from '../interfaces/code.interface'
 import { type IUser } from '../interfaces/user.interface'
 
 /*
@@ -50,7 +50,7 @@ export const getToken = async (options: ITokenPayload): Promise<ITokenResponse> 
   const payload = options.code
     ? getCodeTokenPayload(userdata)
     : getTokenPayload(userdata)
-  return options.code ? await generateCodeToken(payload as ICodeTokenPayload) : await generateToken(payload as IUser)
+  return options.code ? await generateCodeToken(payload as ICodeValue) : await generateToken(payload as IUser)
 }
 
 /*
@@ -117,10 +117,10 @@ export const refreshToken = async (options: ITokenPayload): Promise<ITokenRespon
     : getTokenPayload(userdata)
   // delete the used up refresh token
   await updateToken(token.jti)
-  return token.code ? await generateCodeToken(payload as ICodeTokenPayload) : await generateToken(payload as IUser)
+  return token.code ? await generateCodeToken(payload as ICodeValue) : await generateToken(payload as IUser)
 }
 
-export const generateCodeToken = async (payload: ICodeTokenPayload): Promise<ITokenResponse> => {
+export const generateCodeToken = async (payload: ICodeValue): Promise<ITokenResponse> => {
   console.debug('BACKEND.generateCodeToken() called with', {
     ...payload,
     code: payload.code ? 'redacted' : null

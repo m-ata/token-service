@@ -2,7 +2,7 @@ export interface ICode {
   code: string
 }
 
-export interface ICodeTokenPayload {
+export interface ICodeValue {
   organisationId?: number
   campId: string
   stayId: string

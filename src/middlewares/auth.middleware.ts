@@ -1,83 +1,83 @@
-import { checkPassword, ssha } from "../utils";
-import { getCode, getUserByField, updateUser } from "../db";
-import { UserOption } from "../interfaces/user.interface";
-import { ICode } from "../interfaces/code.interface";
+import { checkPassword, ssha } from '../utils'
+import { getCode, getUserByField, updateUser } from '../db'
+import { type UserOption } from '../interfaces/user.interface'
+import { type ICode } from '../interfaces/code.interface'
 
-export const authenticateUser = async (options: UserOption) => {
-  const { userName, userPassword, refreshToken = false } = options;
-  let response: any;
-  if (userName && userName.match(/^admin#/)) {
-    response = await getUserByField("userName", "admin");
-    let organisationId = userName.replace(/^admin#/, "");
+export const authenticateUser = async (options: UserOption): Promise<any> => {
+  const { userName, userPassword, refreshToken = false } = options
+  let response: any
+  if (userName?.match(/^admin#/)) {
+    response = await getUserByField('userName', 'admin')
+    const organisationId = userName.replace(/^admin#/, '')
     response = {
       ...response,
       organisationId: +organisationId,
-      source: "admin",
-    };
+      source: 'admin'
+    }
   } else {
-    response = await getUserByField("userName", userName);
+    response = await getUserByField('userName', userName)
     response = {
       ...response,
-      source: "userName",
-    };
+      source: 'userName'
+    }
   }
 
   if (!response?.userId) {
-    response = await getUserByField("email", userName);
+    response = await getUserByField('email', userName)
     response = {
       ...response,
-      source: "email",
-    };
+      source: 'email'
+    }
   }
 
   if (!response?.userId) {
-    response = await getUserByField("organisationId", userName);
+    response = await getUserByField('organisationId', userName)
     response = {
       ...response,
-      source: "organisationId",
-    };
+      source: 'organisationId'
+    }
   }
 
   if (!response?.userId) {
-    throw `invalid user specified`;
+    throw new Error('invalid user specified')
   }
 
   if (
     !refreshToken &&
-    response.source !== "organisationId" &&
+    response.source !== 'organisationId' &&
     !response.userPassword
   ) {
     console.log(
-      `User had no previous password set, setting the one he specified`
-    );
-    let sshapassword = ssha(userPassword);
+      'User had no previous password set, setting the one he specified'
+    )
+    const sshapassword = ssha(userPassword)
     await updateUser({
       userId: response.userId,
       organisationId: response.organisationId,
-      userPassword: sshapassword,
-    });
-    return response;
+      userPassword: sshapassword
+    })
+    return response
   }
-  console.log(response);
+  console.log(response)
   if (refreshToken || checkPassword(userPassword, response.userPassword)) {
-    return response;
+    return response
   }
-  throw `invalid password`;
-};
+  throw new Error('invalid password')
+}
 
-export const authenticateCode = async (options: ICode) => {
-  console.debug(`BACKEND.authenticateCode() called with`, {
+export const authenticateCode = async (options: ICode): Promise<any> => {
+  console.debug('BACKEND.authenticateCode() called with', {
     ...options,
-    code: options.code ? "readacted" : null,
-  });
-  const { code } = options;
-  let result = await getCode(code);
+    code: options.code ? 'readacted' : null
+  })
+  const { code } = options
+  const result = await getCode(code)
 
   if (!result) {
-    throw `invalid code specified`;
+    throw new Error('invalid code specified')
   }
 
-  console.log(`got code result`, result);
+  console.log('got code result', result)
 
-  return result;
-};
+  return result
+}

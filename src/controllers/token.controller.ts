@@ -1,275 +1,274 @@
 import {
   authenticateCode,
-  authenticateUser,
-} from "../middlewares/auth.middleware";
-import config from "../configs";
-import { getCodeTokenPayload } from "../utils";
-import { getTokenPayload } from "../utils";
-import { cleanupTokens, deleteToken, getTokenByJti, insertToken, updateToken } from "../db";
-import fs from "fs";
-import jwt, { SignOptions } from "jsonwebtoken";
-import { v4 as uuidv4 } from "uuid";
-import { IJwtConfig, ITokenPayload, ITokenResponse } from "../interfaces/token.interface";
-import { ICodeTokenPayload } from "../interfaces/code.interface";
-import { IUser } from "../interfaces/user.interface";
+  authenticateUser
+} from '../middlewares/auth.middleware'
+import config from '../configs'
+import { getCodeTokenPayload, getTokenPayload } from '../utils'
+import { cleanupTokens, deleteToken, getTokenByJti, insertToken, updateToken } from '../db'
+import fs from 'fs'
+import jwt from 'jsonwebtoken'
+import { v4 as uuidv4 } from 'uuid'
+import { type ITokenPayload, type IToken, type ITokenResponse } from '../interfaces/token.interface'
+import { type ICodeTokenPayload } from '../interfaces/code.interface'
+import { type IUser } from '../interfaces/user.interface'
 
 /*
   getToken
   called by /token router on "login"
   calls authenticateUser and getTokenPayload, if they dont throw return generateToken promise.
 */
-export const getToken = async (options: ITokenPayload) => {
-  console.debug(`BACKEND.getToken() called with`, {
+export const getToken = async (options: ITokenPayload): Promise<ITokenResponse> => {
+  console.debug('BACKEND.getToken() called with', {
     ...options,
-    password: options.password ? "redacted" : null,
-  });
-  const { client_id } = options;
+    password: options.password ? 'redacted' : null
+  })
+  const { client_id } = options
   if (client_id !== config.TOKEN_SERVICE_CLIENT_ID) {
-    throw `token-service not configured for requested client_id`;
+    throw new Error('token-service not configured for requested client_id')
   }
-  let userdata;
+  let userdata
   try {
     userdata = options.code
       ? await authenticateCode({
-          code: options.code,
-        })
+        code: options.code
+      })
       : await authenticateUser({
-          userName: options.username,
-          userPassword: options.password,
-        });
+        userName: String(options?.username),
+        userPassword: String(options.password)
+      })
   } catch (error) {
     console.error(
-      `caught error authenticating user in BACKEND.getToken()`,
+      'caught error authenticating user in BACKEND.getToken()',
       error
-    );
-    throw {
+    )
+    throw Object.assign(new Error(), {
       status: 401,
-      message: `errors.unauthorized`,
-      error: new Error(`authentication failed`),
-    };
+      message: 'errors.unauthorized',
+      error: new Error('authentication failed')
+    })
   }
-  let payload = options.code
-    ? await getCodeTokenPayload(userdata)
-    : await getTokenPayload(userdata);
-  return options.code ? generateCodeToken(payload as ICodeTokenPayload) : generateToken(payload);
-};
+  const payload = options.code
+    ? getCodeTokenPayload(userdata)
+    : getTokenPayload(userdata)
+  return options.code ? await generateCodeToken(payload as ICodeTokenPayload) : await generateToken(payload as IUser)
+}
 
 /*
   refreshToken
   called by /token router on refresh token
   verify token, throws error if it doesn't exist in DB, otherwise return new token
 */
-export const refreshToken = async (options: ITokenPayload) => {
-  console.debug(`BACKEND.refreshToken() called with`, {
-    ...options,
-  });
+export const refreshToken = async (options: ITokenPayload): Promise<ITokenResponse> => {
+  console.debug('BACKEND.refreshToken() called with', {
+    ...options
+  })
   if (options.client_id !== config.TOKEN_SERVICE_CLIENT_ID) {
-    throw `token-service not configured for requested client_id`;
+    throw new Error('token-service not configured for requested client_id')
   }
-  let sslCertFile = fs.readFileSync(config.TOKEN_SERVICE_SSL_KEY);
-  sslCertFile = new (Buffer.from(sslCertFile as any, "utf-8") as any)();
-  let token: any;
+  let sslCertFile = fs.readFileSync(String(config.TOKEN_SERVICE_SSL_KEY))
+  sslCertFile = new (Buffer.from(sslCertFile as any, 'utf-8') as any)()
+  let token: any
   try {
     token = jwt.verify(
-      options.refresh_token,
-      Buffer.from(sslCertFile).toString("ascii"),
+      String(options.refresh_token),
+      Buffer.from(sslCertFile).toString('ascii'),
       {
-        algorithms: config.JWTCONFIG.algorithm as any,
-        //issuer: CONFIG.JWTCONFIG.issuer,
+        algorithms: config.JWTCONFIG.algorithm as any
+        // issuer: CONFIG.JWTCONFIG.issuer,
       }
-    ) as IJwtConfig;
+    )
   } catch (error) {
     console.error(
-      `caught error verifying token in BACKEND.refreshToken()`,
+      'caught error verifying token in BACKEND.refreshToken()',
       error
-    );
-    throw {
+    )
+    throw Object.assign(new Error(), {
       status: 401,
-      message: `errors.unauthorized`,
-      error: new Error(`refresh token verification failed`),
-    };
+      message: 'errors.unauthorized',
+      error: new Error('refresh token verification failed')
+    })
   }
 
-  let tokenInDB = await getTokenByJti(token.jti);
+  const tokenInDB = await getTokenByJti(token.jti)
   if (!tokenInDB) {
-    throw {
+    throw Object.assign(new Error(), {
       status: 401,
-      message: `errors.unauthorized`,
-      error: new Error(`refresh token not found in database`),
-    };
+      message: 'errors.unauthorized',
+      error: new Error('refresh token not found in database')
+    })
   }
   console.debug(
     `BACKEND.refreshToken() refreshing tokens for ${
-      token.code ? "code" : "userName"
-    } ${token.code ? token.code : token.userName} jti ${token.jti} `,
+      token.code ? 'code' : 'userName'
+    } ${token.code ? String(token.code) : String(token.userName)} jti ${String(token.jti)} `,
     token
-  );
-  let userdata = token.code
+  )
+  const userdata = token.code
     ? await authenticateCode({
-        ...token,
-        refreshToken: true,
-      })
+      ...token,
+      refreshToken: true
+    })
     : await authenticateUser({
-        ...token,
-        refreshToken: true,
-      });
-  let payload = token.code
-    ? await getCodeTokenPayload(userdata)
-    : await getTokenPayload(userdata);
+      ...token,
+      refreshToken: true
+    })
+  const payload = token.code
+    ? getCodeTokenPayload(userdata)
+    : getTokenPayload(userdata)
   // delete the used up refresh token
-  await updateToken(token.jti);
-  return token.code ? generateCodeToken(payload as ICodeTokenPayload) : generateToken(payload);
-};
+  await updateToken(token.jti)
+  return token.code ? await generateCodeToken(payload as ICodeTokenPayload) : await generateToken(payload as IUser)
+}
 
-export const generateCodeToken = async (payload: ICodeTokenPayload) => {
-  console.debug(`BACKEND.generateCodeToken() called with`, {
+export const generateCodeToken = async (payload: ICodeTokenPayload): Promise<ITokenResponse> => {
+  console.debug('BACKEND.generateCodeToken() called with', {
     ...payload,
-    code: payload.code ? "redacted" : null,
-  });
-  let sslKeyFile = fs.readFileSync(config.TOKEN_SERVICE_SSL_KEY);
-  let sslKey = new Buffer(sslKeyFile as any, "utf-8") as any;
+    code: payload.code ? 'redacted' : null
+  })
+  const sslKeyFile = fs.readFileSync(String(config.TOKEN_SERVICE_SSL_KEY))
+  const sslKey = Buffer.from(sslKeyFile as any, 'utf-8') as any
 
-  let tokenExpiryDate = config.CODE_TOKEN_EXPIRY;
-  let refreshTokenExpiryDate = config.CODE_REFRESHTOKEN_EXPIRY;
-  let jwtid = uuidv4();
-  let access_token = jwt.sign(
+  const tokenExpiryDate = config.CODE_TOKEN_EXPIRY
+  const refreshTokenExpiryDate = config.CODE_REFRESHTOKEN_EXPIRY
+  const jwtid = uuidv4()
+  const access_token = jwt.sign(
     Object.assign(
       {},
       {
-        typ: "Bearer",
-        nbf: parseInt(((Date.now() - 60 * 60 * 1000) / 1000).toString()),
+        typ: 'Bearer',
+        nbf: parseInt(((Date.now() - 60 * 60 * 1000) / 1000).toString())
       },
       payload
     ),
-    Buffer.from(sslKey).toString("ascii"),
+    Buffer.from(sslKey).toString('ascii'),
     {
       ...config.JWTCONFIG,
-      jwtid: jwtid,
+      jwtid,
       expiresIn: +tokenExpiryDate,
-      subject: payload.code,
-    } as SignOptions
-  );
+      subject: payload.code
+    } as any
+  )
 
-  let refresh_token = jwt.sign(
+  const refresh_token = jwt.sign(
     Object.assign(
       {},
       {
-        typ: "Bearer",
-        nbf: parseInt(((Date.now() - 60 * 60 * 1000) / 1000).toString()),
+        typ: 'Bearer',
+        nbf: parseInt(((Date.now() - 60 * 60 * 1000) / 1000).toString())
       },
       { code: payload.code }
     ),
-    Buffer.from(sslKey).toString("ascii"),
+    Buffer.from(sslKey).toString('ascii'),
     {
       ...config.JWTCONFIG,
-      jwtid: jwtid,
+      jwtid,
       expiresIn: +refreshTokenExpiryDate,
-      subject: payload.code,
-    } as SignOptions
-  );
+      subject: payload.code
+    } as any
+  )
 
-  console.log("generated tokens created: ", {
-    access_token: access_token,
-    refresh_token: refresh_token,
+  console.log('generated tokens created: ', {
+    access_token,
+    refresh_token,
     expires_in: tokenExpiryDate,
-    refresh_expires_in: refreshTokenExpiryDate,
-  });
+    refresh_expires_in: refreshTokenExpiryDate
+  })
   try {
-    await cleanupTokens();
+    await cleanupTokens()
   } catch (error) {
-    console.error(`caught error cleaning up tokens`, error);
+    console.error('caught error cleaning up tokens', error)
   }
 
-  await insertToken(jwt.decode(refresh_token));
+  await insertToken(jwt.decode(refresh_token))
   return {
-    access_token: access_token,
-    refresh_token: refresh_token,
+    access_token,
+    refresh_token,
     expires_in: tokenExpiryDate,
-    refresh_expires_in: refreshTokenExpiryDate,
-  };
-};
+    refresh_expires_in: refreshTokenExpiryDate
+  }
+}
 
 /*
   generateToken
   called by getToken and refreshToken
   requires passed "payload"
 */
-export const generateToken = async (payload: IUser) => {
-  console.debug(`BACKEND.generateToken() called with`, {
+export const generateToken = async (payload: IUser): Promise<ITokenResponse> => {
+  console.debug('BACKEND.generateToken() called with', {
     ...payload,
-    userPassword: payload.userPassword ? "redacted" : null,
-  });
-  let sslKeyFile = fs.readFileSync(config.TOKEN_SERVICE_SSL_KEY);
-  let sslKey = new Buffer(sslKeyFile as any, "utf-8") as any;
+    userPassword: payload.userPassword ? 'redacted' : null
+  })
+  const sslKeyFile = fs.readFileSync(String(config.TOKEN_SERVICE_SSL_KEY))
+  const sslKey = Buffer.from(sslKeyFile as any, 'utf-8') as any
 
-  let tokenExpiryDate = config.TOKEN_EXPIRY;
-  let refreshTokenExpiryDate = config.REFRESHTOKEN_EXPIRY;
-  let jwtid = uuidv4();
-  let access_token = jwt.sign(
+  const tokenExpiryDate = config.TOKEN_EXPIRY
+  const refreshTokenExpiryDate = config.REFRESHTOKEN_EXPIRY
+  const jwtid = uuidv4()
+  const access_token = jwt.sign(
     Object.assign(
       {},
       {
-        typ: "Bearer",
-        nbf: parseInt(((Date.now() - 60 * 60 * 1000) / 1000).toString()),
+        typ: 'Bearer',
+        nbf: parseInt(((Date.now() - 60 * 60 * 1000) / 1000).toString())
       },
       payload
     ),
-    Buffer.from(sslKey).toString("ascii"),
+    Buffer.from(sslKey).toString('ascii'),
     {
       ...config.JWTCONFIG,
-      jwtid: jwtid,
+      jwtid,
       expiresIn: +tokenExpiryDate,
-      subject: payload.userName,
+      subject: payload.userName
     } as any
-  );
+  )
 
-  let refresh_token = jwt.sign(
+  const refresh_token = jwt.sign(
     Object.assign(
       {},
       {
-        typ: "Bearer",
-        nbf: parseInt(((Date.now() - 60 * 60 * 1000) / 1000).toString()),
+        typ: 'Bearer',
+        nbf: parseInt(((Date.now() - 60 * 60 * 1000) / 1000).toString())
       },
       { userName: payload.userName }
     ),
-    Buffer.from(sslKey).toString("ascii"),
+    Buffer.from(sslKey).toString('ascii'),
     {
       ...config.JWTCONFIG,
-      jwtid: jwtid,
+      jwtid,
       expiresIn: +refreshTokenExpiryDate,
-      subject: payload.userName,
-    } as SignOptions
-  );
+      subject: payload.userName
+    } as any
+  )
 
-  console.log("generated tokens created: ", {
-    access_token: access_token,
-    refresh_token: refresh_token,
+  console.log('generated tokens created: ', {
+    access_token,
+    refresh_token,
     expires_in: config.TOKEN_EXPIRY,
-    refresh_expires_in: config.REFRESHTOKEN_EXPIRY,
-  });
+    refresh_expires_in: config.REFRESHTOKEN_EXPIRY
+  })
   try {
-    await cleanupTokens();
+    await cleanupTokens()
   } catch (error) {
-    console.error(`caught error cleaning up tokens`, error);
+    console.error('caught error cleaning up tokens', error)
   }
 
-  await insertToken(jwt.decode(refresh_token));
+  await insertToken(jwt.decode(refresh_token))
   return {
-    access_token: access_token,
-    refresh_token: refresh_token,
+    access_token,
+    refresh_token,
     expires_in: config.TOKEN_EXPIRY,
-    refresh_expires_in: config.REFRESHTOKEN_EXPIRY,
-  };
-};
+    refresh_expires_in: config.REFRESHTOKEN_EXPIRY
+  }
+}
 
 /*
   logout token
 */
-export const logout = async (token: any) => {
-    console.debug(
-      `BACKEND.logout() called for userName ${token.userName} jti ${token.jti}`,
-    );
-  
-    await deleteToken(token.jti);
-    return true;
-  };
+export const logout = async (token: IToken): Promise<boolean> => {
+  console.debug(
+      `BACKEND.logout() called for userName ${String(token.userName)} jti ${token.jti}`
+  )
+
+  await deleteToken(token.jti)
+  return true
+}

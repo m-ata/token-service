@@ -1,59 +1,59 @@
-import config from "../configs";
-import fs from "fs";
-import jwt from "jsonwebtoken";
-import { Request } from "express";
-import { getTokenByJti } from "../db";
-import { IToken } from "../interfaces/token.interface";
+import config from '../configs'
+import fs from 'fs'
+import jwt from 'jsonwebtoken'
+import { type Request } from 'express'
+import { getTokenByJti } from '../db'
+import { type IToken } from '../interfaces/token.interface'
 
-export const verifyToken = async (http_request: Request) => {
-  console.debug(`UTIL.verifyToken verifying token`);
+export const verifyToken = async (http_request: Request): Promise<IToken> => {
+  console.debug('UTIL.verifyToken verifying token')
 
-  if (!http_request.headers || !http_request.headers.authorization) {
-    throw {
+  if (!http_request?.headers || !http_request?.headers?.authorization) {
+    throw Object.assign(new Error(), {
       status: 401,
-      message: `errors.unauthorized`,
-      error: new Error(`no token passed`),
-    };
+      message: 'errors.unauthorized',
+      error: new Error('no token passed')
+    })
   }
-  let token: IToken;
+  let token: IToken
   // check if token is valid
   try {
-    let authorization_header = http_request.headers.authorization.substring(
+    const authorization_header = http_request.headers.authorization.substring(
       7,
-      http_request.headers.authorization.length,
-    );
+      http_request.headers.authorization.length
+    )
 
-    let sslCertFile = fs.readFileSync(config.TOKEN_SERVICE_SSL_KEY);
-    sslCertFile = new Buffer(sslCertFile as any, "utf-8");
+    let sslCertFile = fs.readFileSync(String(config.TOKEN_SERVICE_SSL_KEY))
+    sslCertFile = Buffer.from(sslCertFile as any, 'utf-8') as any
     token = jwt.verify(
       authorization_header,
-      Buffer.from(sslCertFile).toString("ascii"),
+      Buffer.from(sslCertFile).toString('ascii'),
       {
-        algorithms: config.JWTCONFIG.algorithm,
-        //issuer: CONFIG.JWTCONFIG.issuer,
-      } as any,
-    ) as any;
+        algorithms: config.JWTCONFIG.algorithm
+        // issuer: CONFIG.JWTCONFIG.issuer,
+      } as any
+    ) as any
   } catch (error) {
-    console.error(`error in UTIL.verifyToken `, error);
-    throw {
+    console.error('error in UTIL.verifyToken ', error)
+    throw Object.assign(new Error(), {
       status: 401,
-      message: `errors.unauthorized`,
-      error: new Error(`token verification failed`),
-    };
+      message: 'errors.unauthorized',
+      error: new Error('token verification failed')
+    })
   }
   // check if this token jti actually exists in DB
   try {
-    let tokenInDB = await getTokenByJti(token.jti);
+    const tokenInDB = await getTokenByJti(token.jti)
     if (!tokenInDB) {
-      throw `token jti not found in DB`;
+      throw new Error('token jti not found in DB')
     }
   } catch (error) {
-    console.error(`error in UTIL.verifyToken `, error);
-    throw {
+    console.error('error in UTIL.verifyToken ', error)
+    throw Object.assign(new Error(), {
       status: 401,
-      message: `errors.unauthorized`,
-      error: new Error(`token not found`),
-    };
+      message: 'errors.unauthorized',
+      error: new Error('token not found')
+    })
   }
-  return token;
+  return token
 }

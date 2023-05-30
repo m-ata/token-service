@@ -1,16 +1,16 @@
 const {
   TOKEN_SERVICE_SSL_CERT,
   TOKEN_SERVICE_SSL_KEY,
-  TOKEN_SERVICE_CLIENT_ID = "fishreg",
+  TOKEN_SERVICE_CLIENT_ID = 'fishreg',
   DEBUG,
   LISTEN_PORT = 3000,
   TOKEN_EXPIRY = 900,
   REFRESHTOKEN_EXPIRY = 604800,
   CODE_TOKEN_EXPIRY = 900,
   CODE_REFRESHTOKEN_EXPIRY = 604800,
-  JWT_ISSUER = "fishreg",
-  JWT_ALOGORITHM = "RS256",
-  JWT_AUDIENCE = "users",
+  JWT_ISSUER = 'fishreg',
+  JWT_ALOGORITHM = 'RS256',
+  JWT_AUDIENCE = 'users',
   MONGODB_HOST,
   MONGODB_PORT,
   MONGODB_USER,
@@ -19,15 +19,15 @@ const {
   MONGODB_SCHEMA,
   MONGODB_TLS_KEY_FILE,
   MONGODB_TLS_CERT_FILE,
-  MONGODB_TLS_CA_FILE,
-} = process.env;
+  MONGODB_TLS_CA_FILE
+} = process.env
 
 const JWTCONFIG = Object.freeze({
   algorithm: JWT_ALOGORITHM,
   audience: JWT_AUDIENCE,
   issuer: JWT_ISSUER,
-  noTimestamp: false,
-});
+  noTimestamp: false
+})
 
 const config = {
   TOKEN_SERVICE_SSL_CERT,
@@ -48,7 +48,7 @@ const config = {
   MONGODB_SCHEMA,
   MONGODB_TLS_KEY_FILE,
   MONGODB_TLS_CERT_FILE,
-  MONGODB_TLS_CA_FILE,
-};
+  MONGODB_TLS_CA_FILE
+}
 
-export default config;
+export default config
